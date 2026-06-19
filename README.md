@@ -24,6 +24,69 @@ iOS 14 or later for the sensor. The App Intent action requires iOS 16 or later.
 import com_awareframework_ios_sensor_shortcuts
 ```
 
+## Xcode Setup
+
+### App Intent integration (recommended)
+
+Use this setup when you want the action **Record AWARE Automation Event** to appear in the Shortcuts app.
+
+1. Add this package to the iOS app target.
+    * In Xcode, open the app project.
+    * Select the app project in the Project navigator.
+    * Select the app target.
+    * Open **General** -> **Frameworks, Libraries, and Embedded Content**.
+    * Confirm `com.awareframework.ios.sensor.shortcuts` is listed.
+
+2. Set the app target deployment version.
+    * The sensor can be compiled for iOS 14 or later.
+    * The Shortcuts App Intent action requires iOS 16 or later.
+    * If you need the Shortcuts action, set **Deployment Target** to iOS 16.0 or later.
+
+3. Import and initialize the sensor from the app.
+
+```swift
+import com_awareframework_ios_sensor_shortcuts
+
+let shortcutsAutomationSensor = ShortcutsAutomationSensor(
+    ShortcutsAutomationSensor.Config().apply { config in
+        config.dbPath = "aware_shortcuts_automation"
+        config.dbTableName = ShortcutAutomationEventData.databaseTableName
+        config.dbType = .sqlite
+    })
+
+shortcutsAutomationSensor.start()
+```
+
+4. Build and run the app once on the device.
+    * iOS indexes App Intents from installed apps.
+    * After installing the app, open the Shortcuts app and search for **Record AWARE Automation Event**.
+    * No extra entitlement is required for this App Intent.
+
+If the action does not appear in Shortcuts, confirm that the package product is linked to the app target, clean the build folder, rebuild, and launch the app once.
+
+### URL fallback setup
+
+Use this setup only when you cannot use App Intents.
+
+1. Add a URL scheme to the app target.
+    * Select the app target in Xcode.
+    * Open **Info** -> **URL Types**.
+    * Add a URL scheme such as `aware`.
+
+2. Forward opened URLs to the sensor.
+
+```swift
+.onOpenURL { url in
+    shortcutsAutomationSensor.handle(url: url)
+}
+```
+
+3. In Shortcuts, use an **Open URLs** action such as:
+
+```text
+aware://automation?event=sound_detected&trigger=sound_recognition&valueKey=soundName&value=baby_crying
+```
+
 ## Shortcuts Automation Integration
 
 Create and start the sensor in your app:
